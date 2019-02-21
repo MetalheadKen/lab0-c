@@ -30,6 +30,7 @@ queue_t *q_new()
         return NULL;
 
     q->head = NULL;
+    q->tail = NULL;
     q->size = 0;
     return q;
 }
@@ -82,8 +83,13 @@ bool q_insert_head(queue_t *q, char *s)
 
     newh->value = str;
     newh->next = q->head;
+
+    if (q->head == NULL) {
+        q->tail = newh;
+    }
     q->head = newh;
     q->size++;
+
     return true;
 
 ERR_FREE_LIST:
@@ -123,13 +129,9 @@ bool q_insert_tail(queue_t *q, char *s)
     if (q->head == NULL) {
         q->head = newt;
     } else {
-        list_ele_t *head = q->head;
-
-        while (head->next != NULL) {
-            head = head->next;
-        }
-        head->next = newt;
+        q->tail->next = newt;
     }
+    q->tail = newt;
     q->size++;
 
     return true;
@@ -161,7 +163,7 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
-    q->size--;
+    q->tail = (--q->size == 0) ? NULL : q->tail;
 
     free(tmp->value);
     free(tmp);
@@ -201,6 +203,7 @@ void q_reverse(queue_t *q)
     prev = q->head;
     curr = q->head->next;
     q->head->next = NULL;
+    q->tail = prev;
 
     while (curr != NULL) {
         next = curr->next;
