@@ -23,13 +23,14 @@ struct CELE {
 };
 
 /* Optionally supply function that gets invoked when parameter changes */
-typedef void (*setter_function)(int oldval);
+typedef void (*setter_function)(void *oldval, int oldsize);
 
 /* Integer-valued parameters */
 typedef struct PELE param_ele, *param_ptr;
 struct PELE {
     char *name;
-    int *valp;
+    void *valp;
+    int valsize;
     char *documentation;
     /* Function that gets called whenever parameter changes */
     setter_function setter;
@@ -44,7 +45,8 @@ void add_cmd(char *name, cmd_function operation, char *documentation);
 
 /* Add a new parameter */
 void add_param(char *name,
-               int *valp,
+               void *valp,
+               int valsize,
                char *doccumentation,
                setter_function setter);
 

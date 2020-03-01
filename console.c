@@ -82,6 +82,8 @@ static void pop_file();
 
 static bool interpret_cmda(int argc, char *argv[]);
 
+static uint32_t get_plist_valp(param_ptr p);
+
 /* Initialize interpreter */
 void init_cmd()
 {
@@ -99,11 +101,14 @@ void init_cmd()
     add_cmd("log", do_log_cmd, " file           | Copy output to file");
     add_cmd("time", do_time_cmd, " cmd arg ...    | Time command execution");
     add_cmd("#", do_comment_cmd, " ...            | Display comment");
-    add_param("simulation", (int *) &simulation, "Start/Stop simulation mode",
+    add_param("simulation", (void *) &simulation, sizeof(simulation),
+              "Start/Stop simulation mode", NULL);
+    add_param("verbose", (void *) &verblevel, sizeof(verblevel),
+              "Verbosity level", NULL);
+    add_param("error", (void *) &err_limit, sizeof(err_limit),
+              "Number of errors until exit", NULL);
+    add_param("echo", (void *) &echo, sizeof(echo), "Do/don't echo commands",
               NULL);
-    add_param("verbose", &verblevel, "Verbosity level", NULL);
-    add_param("error", &err_limit, "Number of errors until exit", NULL);
-    add_param("echo", (int *) &echo, "Do/don't echo commands", NULL);
 
     init_in();
     init_time(&last_time);
@@ -130,7 +135,8 @@ void add_cmd(char *name, cmd_function operation, char *documentation)
 
 /* Add a new parameter */
 void add_param(char *name,
-               int *valp,
+               void *valp,
+               int valsize,
                char *documentation,
                setter_function setter)
 {
@@ -144,6 +150,7 @@ void add_param(char *name,
     param_ptr ele = (param_ptr) malloc_or_fail(sizeof(param_ele), "add_param");
     ele->name = name;
     ele->valp = valp;
+    ele->valsize = valsize;
     ele->documentation = documentation;
     ele->setter = setter;
     ele->next = next_param;
@@ -248,6 +255,18 @@ static bool interpret_cmd(char *cmdline)
     return ok;
 }
 
+static uint32_t get_plist_valp(param_ptr p)
+{
+    switch (p->valsize) {
+    case 1:
+        return (*(uint8_t *) p->valp);
+    case 2:
+        return (*(uint16_t *) p->valp);
+    default:
+        return (*(uint32_t *) p->valp);
+    }
+}
+
 /* Set function to be executed as part of program exit */
 void add_quit_helper(cmd_function qf)
 {
@@ -303,7 +322,7 @@ static bool do_help_cmd(int argc, char *argv[])
     param_ptr plist = param_list;
     report(1, "Options:");
     while (plist) {
-        report(1, "\t%s\t%d\t%s", plist->name, *plist->valp,
+        report(1, "\t%s\t%d\t%s", plist->name, get_plist_valp(plist),
                plist->documentation);
         plist = plist->next;
     }
@@ -342,7 +361,7 @@ static bool do_option_cmd(int argc, char *argv[])
         param_ptr plist = param_list;
         report(1, "Options:");
         while (plist) {
-            report(1, "\t%s\t%d\t%s", plist->name, *plist->valp,
+            report(1, "\t%s\t%d\t%s", plist->name, get_plist_valp(plist),
                    plist->documentation);
             plist = plist->next;
         }
@@ -365,10 +384,10 @@ static bool do_option_cmd(int argc, char *argv[])
         param_ptr plist = param_list;
         while (!found && plist) {
             if (strcmp(plist->name, name) == 0) {
-                int oldval = *plist->valp;
-                *plist->valp = value;
+                void *oldvalp = plist->valp;
+                memcpy(oldvalp, &value, plist->valsize);
                 if (plist->setter)
-                    plist->setter(oldval);
+                    plist->setter(oldvalp, plist->valsize);
                 found = true;
             } else
                 plist = plist->next;

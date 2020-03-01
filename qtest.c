@@ -98,11 +98,11 @@ static void console_init()
     add_cmd("size", do_size,
             " [n]            | Compute queue size n times (default: n == 1)");
     add_cmd("show", do_show, "                | Show queue contents");
-    add_param("length", &string_length, "Maximum length of displayed string",
-              NULL);
-    add_param("malloc", &fail_probability, "Malloc failure probability percent",
-              NULL);
-    add_param("fail", &fail_limit,
+    add_param("length", (void *) &string_length, sizeof(string_length),
+              "Maximum length of displayed string", NULL);
+    add_param("malloc", (void *) &fail_probability, sizeof(fail_probability),
+              "Malloc failure probability percent", NULL);
+    add_param("fail", (void *) &fail_limit, sizeof(fail_limit),
               "Number of times allow queue operations to return false", NULL);
 }
 
