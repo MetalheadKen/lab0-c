@@ -6,12 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h> /* strcasecmp */
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 #include "dudect/fixture.h"
+#include "natsort/strnatcmp.h" /* strnatcmp */
 
 /* Our program needs to use regular malloc/free */
 #define INTERNAL 1
@@ -60,7 +60,7 @@ static int string_length = MAXSTRING;
 
 #define MIN_RANDSTR_LEN 5
 #define MAX_RANDSTR_LEN 10
-static const char charset[] = "abcdefghijklmnopqrstuvwxyz";
+static const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 /* Forward declarations */
 static bool show_queue(int vlevel);
@@ -104,6 +104,8 @@ static void console_init()
               "Malloc failure probability percent", NULL);
     add_param("fail", (void *) &fail_limit, sizeof(fail_limit),
               "Number of times allow queue operations to return false", NULL);
+    add_param("time", (void *) &time_limit, sizeof(time_limit),
+              "Maximum number of time limit", NULL);
 }
 
 static bool do_new(int argc, char *argv[])
@@ -558,7 +560,7 @@ bool do_sort(int argc, char *argv[])
         for (list_ele_t *e = q->head; e && --cnt; e = e->next) {
             /* Ensure each element in ascending order */
             /* FIXME: add an option to specify sorting order */
-            if (strcasecmp(e->value, e->next->value) > 0) {
+            if (strnatcmp(e->value, e->next->value) > 0) {
                 report(1, "ERROR: Not sorted in ascending order");
                 ok = false;
                 break;

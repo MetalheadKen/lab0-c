@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "harness.h"
+#include "natsort/strnatcmp.h"
 #include "queue.h"
 
 static list_ele_t *merge_sort(list_ele_t *head);
@@ -239,7 +240,7 @@ static list_ele_t *merge(list_ele_t *left, list_ele_t *right)
     list_ele_t *dummy = NULL;
     list_ele_t *curr = NULL;
 
-    if (strcmp(left->value, right->value) > 0) {
+    if (strnatcmp(left->value, right->value) > 0) {
         dummy = right;
         right = right->next;
     } else {
@@ -249,7 +250,7 @@ static list_ele_t *merge(list_ele_t *left, list_ele_t *right)
     curr = dummy;
 
     while (left && right) {
-        if (strcmp(left->value, right->value) > 0) {
+        if (strnatcmp(left->value, right->value) > 0) {
             curr->next = right;
             right = right->next;
         } else {

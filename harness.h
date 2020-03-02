@@ -25,6 +25,9 @@ size_t allocation_check();
 /* Probability of malloc failing, expressed as percent */
 extern int fail_probability;
 
+/* Amount of time limit */
+extern int time_limit;
+
 /*
  * Set/unset cautious mode.
  * In this mode, makes extra sure any block to be freed is currently allocated.
