@@ -556,8 +556,8 @@ bool do_sort(int argc, char *argv[])
     set_noallocate_mode(false);
 
     bool ok = true;
-    if (q) {
-        for (list_ele_t *e = q->head; e && --cnt; e = e->next) {
+    if (q && q->head) {
+        for (list_ele_t *e = q->head; e->next && --cnt; e = e->next) {
             /* Ensure each element in ascending order */
             /* FIXME: add an option to specify sorting order */
             if (strnatcmp(e->value, e->next->value) > 0) {
